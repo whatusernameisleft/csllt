@@ -5,7 +5,11 @@
     menu db "1. List inventory", 10, "2. Sell items", 10, "3. Exit", 10, 10, "Choose an operation: $"
     listInv db "1. Priority", 10, "2. Finished goods", 10, "3. Ordering", 10, "4. Need to order", 10, 10, "Choose an operation: $"
     sellItems db "bruh", 10, 10, "$"
-    itemNames db "Apple", 10, "Banana", 10, "Coconut", 10, "Durian", 10, "European Pear", 10, "$"
+    itemNames db "Cherry", 0
+              db "Banana", 0
+              db "Papaya", 0
+              db "Durian", 0
+              db "Orange", 0
     ; itemQuantities dw 100, 50, 70, 150, 5
     op db ?
 .code
@@ -16,32 +20,21 @@ print macro string
     int 21h
 endm
 
-printChar macro char
-    mov ah, 02h
-    mov dl, char
-    int 21h
-endm
+printItems proc
+     mov si, offset itemNames ; Load the offset of the strings array into SI register
 
-printArray macro array
-    mov si, offset array
-
-    loop_start:
-        mov dl, [si]
-        cmp dl, '$'
-        je loop_end
-
-        mov ah, 02h
-        mov dl, [si]
+    print_loop:
+        mov ah, 09h
+        mov dx, si
         int 21h
 
-        inc si
-        jmp loop_start
-
-    loop_end:
-endm
+        add si, 7
+        cmp byte [si], 0
+        jne print_loop
+    ret
+printItems endp
 
 mainMenu proc
-    
     cmp op, 1
     je m1
     
@@ -56,7 +49,7 @@ mainMenu proc
         jmp m0
 
     m2:
-        printArray itemNames
+        call printItems
         jmp m0
     
     close:
