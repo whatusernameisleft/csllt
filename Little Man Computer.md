@@ -39,14 +39,16 @@
 
 ### Show bigger number
 
-    00  901     Input 1
-    01	390     Store in 90
-    02	901     Input 2
-    03  391     Store in 91
-    04	290     Subtract 90
-    05	808     If positive jump to 8
-    06	590     Load 90
-    07  609     Jump to 9
-    08	591     Load 91
-    09	902     Output
-    10	000     Stop
+```
+00  901     Input 1
+01	390     Store in 90
+02	901     Input 2
+03  391     Store in 91
+04	290     Subtract 90
+05	808     If positive jump to 8
+06	590     Load 90
+07  609     Jump to 9
+08	591     Load 91
+09	902     Output
+10	000     Stop
+```

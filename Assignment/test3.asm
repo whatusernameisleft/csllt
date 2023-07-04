@@ -1,23 +1,21 @@
 .MODEL SMALL
 .STACK 100h
 .DATA
-    strings_array db 'Hello$', 0
-                 db 'World$', 0
-                 db 'Example$', 0
-
+    arr db 'string1',0dh,0ah,'string2',0dh,0ah,'string3',0dh,0ah,'$'
 .CODE
-.STARTUP
-    mov si, offset strings_array   ; Load the address of the array into SI
+.startup
 
-    print_strings:
-        mov ah, 09h                 ; DOS function to display string
-        mov dx, si                  ; Set DX to the address of the current string
-        int 21h                     ; Invoke DOS interrupt 21h
+    lea si,arr
 
-        add si, 7                   ; Move to the next string (including the null terminator)
-        cmp byte ptr [si], 0        ; Check if the current byte is null (end of strings)
-        jne print_strings           ; Jump back to print_strings if not null
+    next:
+        mov ah,09h
+        lea dx,[si]
+        int 21h
 
-    ; Other code
-.EXIT
-end
+        inc si
+        cmp byte ptr [si], '$'
+        jne next
+
+    mov ah,4ch
+    int 21h
+END

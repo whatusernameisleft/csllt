@@ -12,12 +12,14 @@ Similar to procedures but has parameters
 - Can be accessed by **MACRO** name
 - Doesn't require push/pop/return
 
-    ### Format
+### Format
 
-        <name> MACRO <parameter_list>
-            ; Code goes here
+```
+<name> MACRO <parameter_list>
+    ; Code goes here
 
-            ENDm
+    ENDm
+```
 
 ## Differences
 
