@@ -1,5 +1,7 @@
 # LMC
 
+---
+
 ## Little Man Computer
 
 <dl>
@@ -34,6 +36,8 @@
 - 0: Stop
 - 901: Input
 - 902: Output
+
+---
 
 ## Exercise
 

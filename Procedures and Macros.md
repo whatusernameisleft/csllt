@@ -1,5 +1,7 @@
 # Procedures and Macros
 
+---
+
 ## Procedures
 
 Self-routines or group of repeated instructions created to perform a specific task

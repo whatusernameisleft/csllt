@@ -1,6 +1,8 @@
 
 # Services
 
+---
+
 ## Definition
 Predefined functions which are created by computer manufacturers (e.g. Intel, AMD)
 
@@ -23,6 +25,8 @@ Predefined functions which are created by computer manufacturers (e.g. Intel, AM
     <dt>mov ah,00h (BIOS)</dt>
     <dd>Character Input</dd>
 </dl>
+
+---
 
 ## How to display string on the screen
 
