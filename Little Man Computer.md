@@ -75,6 +75,7 @@
 Indicate any register changes. Assume program has been reset. Inputs are 5 and 7.
 
 #### Given
+
 ```
 00  901
 01  312
@@ -91,6 +92,7 @@ Indicate any register changes. Assume program has been reset. Inputs are 5 and 7
 ```
 
 #### Mnemonic Code
+
 ```
 00  INP
 01  STA 12
@@ -104,4 +106,36 @@ Indicate any register changes. Assume program has been reset. Inputs are 5 and 7
 09  LDA 13
 10  OUT
 11  HLT
+```
+
+### Calculate area of circle
+
+```
+00  901     Input decrement number (1)
+01  399     Store in 99
+02  901     Input PI (3)
+03  390     Store in 90
+04  901     Input r
+05  391     Store r (Read-only)
+06  392     Store r (Loop count)
+07  715     Jump to 15 if 0
+08  550     Load 50 (r*r result)
+09  191     Add 91 (r)
+10  350     Store back into 50 (Result)
+11  592     Load 92 (Loop count)
+12  299     Minus 99 (Decrement)
+13  392     Store back into 92 (Loop count)
+14  807     Jump to 7 if positive
+15  590     Load 90 (r)
+16  724     Jump to 24 if 0
+17  551     Load 51 (Final result)
+18  150     Add 50 (r*r)
+19  351     Store back into 51 (Final result)
+20  590     Load 90 (r)
+21  299     Minus 99 (Decrement)
+22  390     Store back into 90 (r)
+23  816     Jump to 16 if positive
+24  551     Load 51 (Final result)
+25  902     Output
+26  000     End
 ```
