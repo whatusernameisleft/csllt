@@ -2,101 +2,161 @@
 .stack 100h
 .data
     CRLF db 13, 10, '$'
-    menu db '1. List inventory', 13, 10, '2. Sell items', 13, 10, '3. Exit', 13, 10, 10, 'Choose an operation: $'
-    listInv db '1. Priority', 13, 10, '2. Finished goods', 13, 10, '3. Ordering', 13, 10, '4. Need to order', 13, 10, 10, 'Choose an operation: $'
+    TAB db 9, '$'
+    HEADER db 13, 10, 13, 10, '================================', 13, 10, '     WORLD TREE FRUIT STORE     ', 13, 10, '================================', '$'
+    menu db 13, 10, '1. List inventory', 13, 10, '2. Sell items', 13, 10, '3. Exit', 13, 10, 10, 'Choose an operation: $'
+    listInvMenu db 13, 10, '1. Priority', 13, 10, '2. Finished goods', 13, 10, '3. Ordering', 13, 10, '4. Need to order', 13, 10, 10, 'Choose an operation: $'
     sellItems db 'bruh$'
-    items dw 1, 2, 3, 4, 5
+    itemsColTitles db 13, 10, 'ID', 9, 'Name', 9, 9, 'Quantity', 13, 10, '$'
+    items db 1, 2, 3, 4, 5
           db 'Cherry', 'Banana', 'Papaya', 'Durian', 'Orange'
-          dw 7, 3, 3, 5, 6, '$'
+          db 7, 3, 3, 5, 6, '$'
 .code
+LOCALS @@
 
-print macro string
+prints macro string
     mov dx, offset string
     mov ah, 09h
     int 21h
 endm
 
-printInt proc
-    ; add dl, 30h
-    ; mov ah, 02h
-    ; int 21h
+printc macro char
+    mov dl, char
+    mov ah, 02h
+    int 21h
+endm
 
-
-    mov bx, 10
-    mov cx, 0
-    loop1:
-        xor dx, dx
-        div bx
-        add dl, 30h
-        push dx
-        inc cx
-        cmp ax, 0
-        jne loop1
-    
-    loop2:
-        pop dx
-        mov ah, 02h
-        int 21h
-        dec cx
-        cmp cx, 0
-        jne loop2
-        
+getInput proc
+    mov ah, 01h
+    int 21h
     ret
+getInput endp
 
+printInt proc
+    mov dl, al
+    add dl, 30h
+    mov ah, 02h
+    int 21h
+    ret
 printInt endp
+
+printName proc
+    push ax
+    push bx
+    push cx
+
+    mov bx, dx
+    mov cx, 6
+    @@print_loop:
+        mov dl, [bx]
+        int 21h
+        inc bx
+        loop @@print_loop
+    
+    pop cx
+    pop bx
+    pop ax
+    ret
+printName endp
 
 printItems proc
     mov bp, 0
     lea si, items
 
-    print_loop:
-        mov ax, [si]
-        cmp ax, 10
-        ja finished
+    @@print_loop:
+        mov al, [si]
+        cmp al, 10
+        ja @@finished
 
         call printInt
-    finished:
+        printc TAB
+
+        mov dx, offset items + 5
+        add dx, bp
+        call printName
+
+        printc TAB
+        printc TAB
+        mov al, [si + 35]
+        call printInt
+
+        prints CRLF
+        add bp, 6
+        inc si
+        jmp @@print_loop
+
+    @@finished:
         ret
 printItems endp
 
-chooseOp proc
-    mov ah, 01h
-    int 21h
+invMenuOp proc
+    call getInput
 
     cmp al, '1'
-    je m1
-    
+    je @@m1
+
     cmp al, '2'
-    je m2
+    je @@m2
 
     cmp al, '3'
-    je exit
+    je @@m3
 
-    m1:
-        print CRLF
-        print listInv
-        jmp m0
+    cmp al, '4'
+    je @@m4
 
-    m2:
+    @@m1:
+        prints HEADER
+        prints itemsColTitles
         call printItems
-        jmp m0
+        jmp main
 
-    exit:
+    @@m2:
+        jmp main
+
+    @@m3:
+        jmp main
+
+    @@m4:
+        jmp main
+
+invMenuOp endp
+
+chooseOp proc
+    call getInput
+
+    cmp al, '1'
+    je @@m1
+    
+    cmp al, '2'
+    je @@m2
+
+    cmp al, '3'
+    je @@exit
+
+    @@m1:
+        prints HEADER
+        prints listInvMenu
+        call invMenuOp
+
+    @@m2:
+        prints HEADER
+        prints sellItems
+        jmp main
+
+    @@exit:
         mov ah, 4ch
         int 21h
 
 chooseOp endp
 
-
-
 .startup
-    m0:
-        print CRLF
-        print menu
+    main:
+        prints HEADER
+        prints menu
 
         call chooseOp
 
-        jmp m0
+        jmp main
 
 .exit
 
