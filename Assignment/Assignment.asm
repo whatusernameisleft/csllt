@@ -1,17 +1,13 @@
 .model small
 .stack 100h
 .data
-    CRLF db 10, 13, '$'
-    menu db "1. List inventory", 10, "2. Sell items", 10, "3. Exit", 10, 10, "Choose an operation: $"
-    listInv db "1. Priority", 10, "2. Finished goods", 10, "3. Ordering", 10, "4. Need to order", 10, 10, "Choose an operation: $"
-    sellItems db "bruh", 10, 10, "$"
-    itemNames db "Cherry", 0
-              db "Banana", 0
-              db "Papaya", 0
-              db "Durian", 0
-              db "Orange", 0
-    ; itemQuantities dw 100, 50, 70, 150, 5
-    op db ?
+    CRLF db 13, 10, '$'
+    menu db '1. List inventory', 13, 10, '2. Sell items', 13, 10, '3. Exit', 13, 10, 10, 'Choose an operation: $'
+    listInv db '1. Priority', 13, 10, '2. Finished goods', 13, 10, '3. Ordering', 13, 10, '4. Need to order', 13, 10, 10, 'Choose an operation: $'
+    sellItems db 'bruh$'
+    items dw 1, 2, 3, 4, 5
+          db 'Cherry', 'Banana', 'Papaya', 'Durian', 'Orange'
+          dw 7, 3, 3, 5, 6, '$'
 .code
 
 print macro string
@@ -20,58 +16,85 @@ print macro string
     int 21h
 endm
 
+printInt proc
+    ; add dl, 30h
+    ; mov ah, 02h
+    ; int 21h
+
+
+    mov bx, 10
+    mov cx, 0
+    loop1:
+        xor dx, dx
+        div bx
+        add dl, 30h
+        push dx
+        inc cx
+        cmp ax, 0
+        jne loop1
+    
+    loop2:
+        pop dx
+        mov ah, 02h
+        int 21h
+        dec cx
+        cmp cx, 0
+        jne loop2
+        
+    ret
+
+printInt endp
+
 printItems proc
-     mov si, offset itemNames ; Load the offset of the strings array into SI register
+    mov bp, 0
+    lea si, items
 
     print_loop:
-        mov ah, 09h
-        mov dx, si
-        int 21h
+        mov ax, [si]
+        cmp ax, 10
+        ja finished
 
-        add si, 7
-        cmp byte [si], 0
-        jne print_loop
-    ret
+        call printInt
+    finished:
+        ret
 printItems endp
 
-mainMenu proc
-    cmp op, 1
+chooseOp proc
+    mov ah, 01h
+    int 21h
+
+    cmp al, '1'
     je m1
     
-    cmp op, 2
+    cmp al, '2'
     je m2
 
-    cmp op, 3
-    je close
+    cmp al, '3'
+    je exit
 
     m1:
+        print CRLF
         print listInv
         jmp m0
 
     m2:
         call printItems
         jmp m0
-    
-    close:
+
+    exit:
         mov ah, 4ch
         int 21h
-        
-mainMenu endp
+
+chooseOp endp
+
+
 
 .startup
     m0:
         print CRLF
         print menu
 
-        mov ah, 01h
-        int 21h
-
-        sub al, 30h
-        mov op, al
-
-        print CRLF
-
-        call mainMenu
+        call chooseOp
 
         jmp m0
 
