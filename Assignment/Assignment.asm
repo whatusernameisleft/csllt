@@ -18,7 +18,6 @@
           db 0, 1, 0, 0, 0, '$'
 .code
 LOCALS @@
-LOCAL @@
 
 prints macro string
     lea dx, string
