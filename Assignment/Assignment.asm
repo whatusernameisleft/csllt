@@ -3,7 +3,7 @@
 .data
     CRLF db 13, 10, '$'
     TAB db 9, '$'
-    COLOUR db 7
+    colour db 7
     HEADER db 13, 10, 13, 10, '================================', 13, 10, '     WORLD TREE FRUIT STORE     ', 13, 10, '================================', '$'
     menu db 13, 10, '1. List inventory', 13, 10, '2. Sell items', 13, 10, '3. Exit', 13, 10, 10, 'Choose an operation: $'
     listInvMenu db 13, 10, '1. Priority', 13, 10, '2. Finished goods', 13, 10, '3. Ordering', 13, 10, '4. Need to order', 13, 10, 10, 'Choose an operation: $'
@@ -11,7 +11,7 @@
     itemsColTitles db 13, 10, 'ID', 9, 'Name', 9, 9, 'Quantity', 13, 10, '$'
     items db 1, 2, 3, 4, 5
           db 'Cherry', 'Banana', 'Papaya', 'Durian', 'Orange'
-          db 7, 1, 3, 5, 6
+          db 7, 1, 3, 5, 0
           db 0, 1, 0, 0, 0, '$'
 .code
 LOCALS @@
@@ -69,7 +69,7 @@ setColour proc
 
     mov ah, 09h
     mov bh, 0
-    mov bl, COLOUR
+    mov bl, colour
     mov cx, 1
     int 10h
     
@@ -92,12 +92,14 @@ checkQuantity proc
     @@save:
         mov dl, bl
         add dl, 30h
-        mov COLOUR, bl
+        mov colour, bl
 
     ret
 checkQuantity endp
 
 printItems proc
+    prints HEADER
+    prints itemsColTitles
     mov bp, 0
     lea si, items
 
@@ -130,8 +132,52 @@ printItems proc
         jmp @@print_loop
 
     @@finished:
+        mov colour, 7
+        call setColour
+        printc ''
         ret
 printItems endp
+
+printFinished proc
+    prints HEADER
+    prints itemsColTitles
+    mov bp, 0
+    lea si, items
+
+    @@print_loop:
+        mov al, [si]
+        cmp al, 10
+        ja @@finished
+        
+        mov al, [si + 35]
+        cmp al, 0
+        jne @@next
+
+        mov al, [si]
+        call setColour
+        call printInt   ;print id
+        printc TAB
+
+        mov dx, offset items + 5
+        add dx, bp
+        call printName  ;print name
+
+        printc TAB
+        printc TAB
+        mov al, [si + 35]
+        call setColour
+        call printInt   
+
+        prints CRLF
+
+        @@next:
+            add bp, 6
+            inc si
+            jmp @@print_loop
+
+    @@finished:
+        ret
+printFinished endp
 
 invMenuOp proc
     call getInput
@@ -149,12 +195,11 @@ invMenuOp proc
     je @@m4
 
     @@m1:
-        prints HEADER
-        prints itemsColTitles
         call printItems
         jmp main
 
     @@m2:
+        call printFinished
         jmp main
 
     @@m3:
