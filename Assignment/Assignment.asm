@@ -3,6 +3,7 @@
 .data
     CRLF db 13, 10, '$'
     TAB db 9, '$'
+    THRESHOLD db 5
     colour db 7
     HEADER db 13, 10, 13, 10, '================================', 13, 10, '     WORLD TREE FRUIT STORE     ', 13, 10, '================================', '$'
     menu db 13, 10, '1. List inventory', 13, 10, '2. Sell items', 13, 10, '3. Exit', 13, 10, 10, 'Choose an operation: $'
@@ -11,7 +12,7 @@
     itemsColTitles db 13, 10, 'ID', 9, 'Name', 9, 9, 'Quantity', 13, 10, '$'
     items db 1, 2, 3, 4, 5
           db 'Cherry', 'Banana', 'Papaya', 'Durian', 'Orange'
-          db 7, 1, 3, 5, 0
+          db 7, 1, 4, 5, 0
           db 0, 1, 0, 0, 0, '$'
 .code
 LOCALS @@
@@ -80,17 +81,16 @@ setColour proc
 setColour endp
 
 checkQuantity proc
-    mov bl, al
-    and bl, 4
-    jnz @@above3
-    add bl, 4
+    cmp al, THRESHOLD
+    jge @@aboveThreshold
+    mov bl, 4
     jmp @@save
     
-    @@above3:
+    @@aboveThreshold:
         mov bl, 7
 
     @@save:
-        mov dl, bl
+        mov dl, al
         add dl, 30h
         mov colour, bl
 
@@ -154,7 +154,6 @@ printFinished proc
         jne @@next
 
         mov al, [si]
-        call setColour
         call printInt   ;print id
         printc TAB
 
@@ -165,7 +164,6 @@ printFinished proc
         printc TAB
         printc TAB
         mov al, [si + 35]
-        call setColour
         call printInt   
 
         prints CRLF
@@ -178,6 +176,88 @@ printFinished proc
     @@finished:
         ret
 printFinished endp
+
+printOrdering proc
+    prints HEADER
+    prints itemsColTitles
+    mov bp, 0
+    lea si, items
+
+    @@print_loop:
+        mov al, [si]
+        cmp al, 10
+        ja @@finished
+        
+        mov al, [si + 40]
+        cmp al, 1
+        jne @@next
+
+        mov al, [si]
+        call printInt   ;print id
+        printc TAB
+
+        mov dx, offset items + 5
+        add dx, bp
+        call printName  ;print name
+
+        printc TAB
+        printc TAB
+        mov al, [si + 35]
+        call printInt   
+
+        prints CRLF
+
+        @@next:
+            add bp, 6
+            inc si
+            jmp @@print_loop
+
+    @@finished:
+        ret
+printOrdering endp
+
+printToOrder proc
+    prints HEADER
+    prints itemsColTitles
+    mov bp, 0
+    lea si, items
+
+    @@print_loop:
+        mov al, [si]
+        cmp al, 10
+        ja @@finished
+        
+        mov al, [si + 35]
+        cmp al, THRESHOLD
+        jge @@next
+
+        mov al, [si + 40]
+        cmp al, 0
+        jne @@next
+
+        mov al, [si]
+        call printInt   ;print id
+        printc TAB
+
+        mov dx, offset items + 5
+        add dx, bp
+        call printName  ;print name
+
+        printc TAB
+        printc TAB
+        mov al, [si + 35]
+        call printInt   
+
+        prints CRLF
+
+        @@next:
+            add bp, 6
+            inc si
+            jmp @@print_loop
+
+    @@finished:
+        ret
+printToOrder endp
 
 invMenuOp proc
     call getInput
@@ -194,6 +274,8 @@ invMenuOp proc
     cmp al, '4'
     je @@m4
 
+    jmp main
+
     @@m1:
         call printItems
         jmp main
@@ -203,9 +285,11 @@ invMenuOp proc
         jmp main
 
     @@m3:
+        call printOrdering
         jmp main
 
     @@m4:
+        call printToOrder
         jmp main
 
 invMenuOp endp
@@ -221,6 +305,8 @@ mainMenuOp proc
 
     cmp al, '3'
     je @@exit
+
+    jmp main
 
     @@m1:
         prints HEADER
