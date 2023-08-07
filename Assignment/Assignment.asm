@@ -8,6 +8,8 @@
     HEADER db 13, 10, 13, 10, '================================', 13, 10, '     WORLD TREE FRUIT STORE     ', 13, 10, '================================', '$'
     menu db 13, 10, '1. List inventory', 13, 10, '2. Sell items', 13, 10, '3. Exit', 13, 10, 10, 'Choose an operation: $'
     listInvMenu db 13, 10, '1. Priority', 13, 10, '2. Finished goods', 13, 10, '3. Ordering', 13, 10, '4. Need to order', 13, 10, 10, 'Choose an operation: $'
+    menuNote1 db '*Red means quantity under threshold$'
+    menuNote2 db '*Red Highlight means under threshold and needs to be ordered$'
     sellItems db 'bruh$'
     itemsColTitles db 13, 10, 'ID', 9, 'Name', 9, 9, 'Quantity', 13, 10, '$'
     items db 1, 2, 3, 4, 5
@@ -16,6 +18,7 @@
           db 0, 1, 0, 0, 0, '$'
 .code
 LOCALS @@
+LOCAL @@
 
 prints macro string
     lea dx, string
@@ -44,22 +47,19 @@ printInt proc
 printInt endp
 
 printName proc
-    push ax
     push bx
     push cx
 
     mov bx, dx
     mov cx, 6
-    @@print_loop:
+    @@printLoop:
         call setColour
-        mov dl, [bx]
-        int 21h
+        printc [bx]
         inc bx
-        loop @@print_loop
+        loop @@printLoop
     
     pop cx
     pop bx
-    pop ax
     ret
 printName endp
 
@@ -83,11 +83,19 @@ setColour endp
 checkQuantity proc
     cmp al, THRESHOLD
     jge @@aboveThreshold
+
+    mov al, [si + 40]
+    cmp al, 0
+    je @@setHighlight
     mov bl, 4
     jmp @@save
     
     @@aboveThreshold:
         mov bl, 7
+        jmp @@save
+
+    @@setHighlight:
+        mov bl, 64
 
     @@save:
         mov dl, al
@@ -97,13 +105,53 @@ checkQuantity proc
     ret
 checkQuantity endp
 
+printNote macro note, col, chars
+    LOCAL @@printColourLoop, @@printLoop, @@finished
+    prints CRLF
+    mov colour, col
+
+    lea dx, note
+    mov bx, dx
+    mov cx, chars
+    printc [bx]
+    inc bx
+    @@printColourLoop:
+        call setColour
+        printc [bx]
+        inc bx
+        loop @@printColourLoop
+        
+    @@printLoop:
+        mov dl, [bx]
+        cmp dl, '$'
+        je @@finished
+
+        printc [bx]
+        inc bx
+        jmp @@printLoop
+
+    @@finished:
+endm
+
+printNotes proc
+    push bx
+    push cx
+
+    printNote menuNote1, 4, 3
+    printNote menuNote2, 64, 13
+
+    pop cx
+    pop bx
+    ret
+printNotes endp
+
 printItems proc
     prints HEADER
     prints itemsColTitles
     mov bp, 0
     lea si, items
 
-    @@print_loop:
+    @@printLoop:
         mov al, [si]
         cmp al, 10
         ja @@finished
@@ -124,17 +172,18 @@ printItems proc
         printc TAB
         mov al, [si + 35]
         call setColour
-        call printInt   
+        call printInt
 
         prints CRLF
         add bp, 6
         inc si
-        jmp @@print_loop
+        jmp @@printLoop
 
     @@finished:
         mov colour, 7
         call setColour
         printc ''
+        call printNotes
         ret
 printItems endp
 
@@ -144,7 +193,7 @@ printFinished proc
     mov bp, 0
     lea si, items
 
-    @@print_loop:
+    @@printLoop:
         mov al, [si]
         cmp al, 10
         ja @@finished
@@ -171,7 +220,7 @@ printFinished proc
         @@next:
             add bp, 6
             inc si
-            jmp @@print_loop
+            jmp @@printLoop
 
     @@finished:
         ret
@@ -183,7 +232,7 @@ printOrdering proc
     mov bp, 0
     lea si, items
 
-    @@print_loop:
+    @@printLoop:
         mov al, [si]
         cmp al, 10
         ja @@finished
@@ -210,7 +259,7 @@ printOrdering proc
         @@next:
             add bp, 6
             inc si
-            jmp @@print_loop
+            jmp @@printLoop
 
     @@finished:
         ret
@@ -222,9 +271,9 @@ printToOrder proc
     mov bp, 0
     lea si, items
 
-    @@print_loop:
+    @@printLoop:
         mov al, [si]
-        cmp al, 10
+        cmp al, 6
         ja @@finished
         
         mov al, [si + 35]
@@ -253,7 +302,7 @@ printToOrder proc
         @@next:
             add bp, 6
             inc si
-            jmp @@print_loop
+            jmp @@printLoop
 
     @@finished:
         ret

@@ -1,10 +1,8 @@
 .model small
 .stack 100h
-.data
-    colour db 7
 .code
 
-main PROC
+.startup
     mov ah,09     ; string display function
     mov al,'A'    ; 'A' temporarily stored in al register
     mov bh,0      ; initial value of bh is 0
@@ -14,5 +12,5 @@ main PROC
 
     mov ah,4ch    ; exit function
     int 21h       ; close dos
-main ENDP
-end main
+.exit
+end
