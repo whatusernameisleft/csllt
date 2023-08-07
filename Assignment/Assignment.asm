@@ -3,6 +3,7 @@
 .data
     CRLF db 13, 10, '$'
     TAB db 9, '$'
+    COLOUR db 7
     HEADER db 13, 10, 13, 10, '================================', 13, 10, '     WORLD TREE FRUIT STORE     ', 13, 10, '================================', '$'
     menu db 13, 10, '1. List inventory', 13, 10, '2. Sell items', 13, 10, '3. Exit', 13, 10, 10, 'Choose an operation: $'
     listInvMenu db 13, 10, '1. Priority', 13, 10, '2. Finished goods', 13, 10, '3. Ordering', 13, 10, '4. Need to order', 13, 10, 10, 'Choose an operation: $'
@@ -10,7 +11,8 @@
     itemsColTitles db 13, 10, 'ID', 9, 'Name', 9, 9, 'Quantity', 13, 10, '$'
     items db 1, 2, 3, 4, 5
           db 'Cherry', 'Banana', 'Papaya', 'Durian', 'Orange'
-          db 7, 1, 3, 5, 6, '$'
+          db 7, 1, 3, 5, 6
+          db 0, 1, 0, 0, 0, '$'
 .code
 LOCALS @@
 
@@ -48,6 +50,7 @@ printName proc
     mov bx, dx
     mov cx, 6
     @@print_loop:
+        call setColour
         mov dl, [bx]
         int 21h
         inc bx
@@ -59,14 +62,14 @@ printName proc
     ret
 printName endp
 
-printRed proc
+setColour proc
     push ax
     push bx
     push cx
 
     mov ah, 09h
     mov bh, 0
-    mov bl, 4
+    mov bl, COLOUR
     mov cx, 1
     int 10h
     
@@ -74,12 +77,23 @@ printRed proc
     pop bx
     pop ax
     ret
-printRed endp
+setColour endp
 
 checkQuantity proc
     mov bl, al
-    cmp bl, 3
-    jle printRed
+    and bl, 4
+    jnz @@above3
+    add bl, 4
+    jmp @@save
+    
+    @@above3:
+        mov bl, 7
+
+    @@save:
+        mov dl, bl
+        add dl, 30h
+        mov COLOUR, bl
+
     ret
 checkQuantity endp
 
@@ -91,7 +105,12 @@ printItems proc
         mov al, [si]
         cmp al, 10
         ja @@finished
+        
+        mov al, [si + 35]
+        call checkQuantity
 
+        mov al, [si]
+        call setColour
         call printInt   ;print id
         printc TAB
 
@@ -102,8 +121,7 @@ printItems proc
         printc TAB
         printc TAB
         mov al, [si + 35]
-        call checkQuantity
-        mov al, [si + 35]
+        call setColour
         call printInt   
 
         prints CRLF
@@ -147,7 +165,7 @@ invMenuOp proc
 
 invMenuOp endp
 
-chooseOp proc
+mainMenuOp proc
     call getInput
 
     cmp al, '1'
@@ -173,14 +191,14 @@ chooseOp proc
         mov ah, 4ch
         int 21h
 
-chooseOp endp
+mainMenuOp endp
 
 .startup
     main:
         prints HEADER
         prints menu
 
-        call chooseOp
+        call mainMenuOp
 
         jmp main
 
