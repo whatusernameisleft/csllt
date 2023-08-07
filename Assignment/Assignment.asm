@@ -10,12 +10,12 @@
     itemsColTitles db 13, 10, 'ID', 9, 'Name', 9, 9, 'Quantity', 13, 10, '$'
     items db 1, 2, 3, 4, 5
           db 'Cherry', 'Banana', 'Papaya', 'Durian', 'Orange'
-          db 7, 3, 3, 5, 6, '$'
+          db 7, 1, 3, 5, 6, '$'
 .code
 LOCALS @@
 
 prints macro string
-    mov dx, offset string
+    lea dx, string
     mov ah, 09h
     int 21h
 endm
@@ -59,6 +59,30 @@ printName proc
     ret
 printName endp
 
+printRed proc
+    push ax
+    push bx
+    push cx
+
+    mov ah, 09h
+    mov bh, 0
+    mov bl, 4
+    mov cx, 1
+    int 10h
+    
+    pop cx
+    pop bx
+    pop ax
+    ret
+printRed endp
+
+checkQuantity proc
+    mov bl, al
+    cmp bl, 3
+    jle printRed
+    ret
+checkQuantity endp
+
 printItems proc
     mov bp, 0
     lea si, items
@@ -68,17 +92,19 @@ printItems proc
         cmp al, 10
         ja @@finished
 
-        call printInt
+        call printInt   ;print id
         printc TAB
 
         mov dx, offset items + 5
         add dx, bp
-        call printName
+        call printName  ;print name
 
         printc TAB
         printc TAB
         mov al, [si + 35]
-        call printInt
+        call checkQuantity
+        mov al, [si + 35]
+        call printInt   
 
         prints CRLF
         add bp, 6
