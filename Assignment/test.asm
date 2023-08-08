@@ -1,42 +1,42 @@
-.MODEL SMALL
-.STACK 100H
+.model small
+.stack 100h
+.data
+    valid db 13, 10, "Number in range$"
+    invalid db 13, 10, "Number not in range$"
+.code
 
-.DATA
-    MSG1 DB 'Enter a number:', '$'
-    MSG2 DB 'The number is greater than 5', '$'
-    MSG3 DB 'The number is less than or equal to 5', '$'
-    NUM1 Db ?
-
-.CODE
-MAIN PROC
-    MOV AX, @DATA
-    MOV DS, AX
-
-    LEA DX, MSG1 ; display message to enter a number
-    MOV AH, 9H
-    INT 21H
-
-    MOV AH, 1H ; read character from keyboard
-    INT 21H
-
-    SUB AL, 30H ; convert character to number
-
-    CMP AL, 5 ; compare with the number 5
-
-    JG GREATER ; jump if greater than 5
-
-    LEA DX, MSG3 ; display message if less than or equal to 5
-    MOV AH, 9H ; display message on screen
+print macro string
+    lea dx, string
+    mov ah, 09h
     int 21h
-    JMP EXIT
+endm
 
-GREATER:
-    LEA DX, MSG2 ; display message if greater than 5
-    MOV AH, 9H ; display message on screen
+.startup
+    mov ah, 01h
     int 21h
+    
+    mov bl, al
+    sub bl, 31h
+    mov dl, 9
+    sub dl, bl
+    jc error
 
-EXIT:
-    MOV AH, 4CH ; return control to DOS
-    INT 21H
-MAIN ENDP
-END MAIN
+    mov dl, 4
+    add al, dl
+    sub al, 30h
+    mov bl, 10
+    cmp al, bl
+    jge error
+
+    fine:
+        print valid
+        jmp finish
+
+    error:
+        print invalid
+
+    finish:
+        mov ah, 4ch
+        int 21h
+.exit
+end
