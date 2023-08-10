@@ -460,7 +460,6 @@ mainMenuOp proc
         call invMenuOp
 
     @@m2:
-        prints HEADER
         call sellItems
         jmp main
 
